@@ -47,6 +47,24 @@ typedef struct tagIMAGEDATA{
     BYTE red;
 } IMAGEDATA;
 
+typedef struct IMAGEYIQ{
+    float Y;
+    float I;
+    float Q;
+};
+
+typedef struct IMAGEXYZ{
+    float X;
+    float Y;
+    float Z;
+};
+
+typedef struct IMAGEHSI{
+    float H;
+    float S;
+    float I;
+};
+
 int img_header_read(FILE *fp, BITMAPFILEHEADER &img_file_header)
 {
     PBITMAPFILEHEADER phead = &img_file_header;
@@ -91,15 +109,36 @@ bool img_info_read(FILE *fp, BITMAPINFO &img_info)
             fread((char *)&img_info.bmiColors[i].rgbBlue, 1, sizeof(BYTE), fp);
             fread((char *)&img_info.bmiColors[i].rgbGreen, 1, sizeof(BYTE), fp);
             fread((char *)&img_info.bmiColors[i].rgbRed, 1, sizeof(BYTE), fp);
-            cout<<hex<<(int)img_info.bmiColors[i].rgbBlue<<endl;
-            cout<<hex<<(int)img_info.bmiColors[i].rgbGreen<<endl;
-            cout<<hex<<(int)img_info.bmiColors[i].rgbRed<<endl;
         }
     }
 
     return ColorFg;
 }
 
+IMAGEYIQ *RGBtoYIQ(IMAGEDATA *P, int plength)
+{
+    float changeMatrix[3][3]={{0.299, 0.587, 0.114},
+                              {0.596, -0.274, -0.322},
+                              {0.211, -0.523, 0.312}};
+    IMAGEYIQ *yiq = new IMAGEYIQ[plength];
+    for (int i = 0; i<plength; i++)
+    {
+        yiq[i].Y = 0;
+        yiq[i].Q = 0;
+        yiq[i].I = 0;
+        yiq[i].Y += changeMatrix[0][0]*P[i].red;
+        yiq[i].Y += changeMatrix[0][1]*P[i].green;
+        yiq[i].Y += changeMatrix[0][2]*P[i].blue;
+        yiq[i].Q += changeMatrix[1][0]*P[i].red;
+        yiq[i].Q += changeMatrix[1][1]*P[i].green;
+        yiq[i].Q += changeMatrix[1][2]*P[i].blue;
+        yiq[i].I += changeMatrix[2][0]*P[i].red;
+        yiq[i].I += changeMatrix[2][1]*P[i].green;
+        yiq[i].I += changeMatrix[2][2]*P[i].blue;
+    }
+
+    return yiq;
+}
 
 int img_read(char *file_name, BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA *Pixels)
 {
@@ -124,15 +163,23 @@ int img_read(char *file_name, BITMAPFILEHEADER &img_file_header, BITMAPINFO &img
     fclose(fp);
 }
 
+
 int main()
 {
     BITMAPFILEHEADER img_header;
     BITMAPINFO binfo;
     IMAGEDATA P[100000];
     img_read("3.bmp", img_header, binfo, P);
-    for (int i=0;i<10;i++)
+    for (int i=0;i<binfo.bmiHeader.biHeight;i++)
     {
-        cout<<hex<<(int)P[i].blue<<endl;
+        for (int j=0;j<binfo.bmiHeader.biWidth;j++)
+        {
+            cout<<hex<<(int)P[i*binfo.bmiHeader.biWidth+j].blue<<' ';
+            cout<<hex<<(int)P[i*binfo.bmiHeader.biWidth+j].green<<' ';
+            cout<<hex<<(int)P[i*binfo.bmiHeader.biWidth+j].red<<' ';
+            cout<<endl;
+        }
     }
+
     return 0;
 }
