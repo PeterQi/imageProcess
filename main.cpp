@@ -9,7 +9,7 @@ typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned int DWORD;
 typedef unsigned int LONG;
-typedef struct tagBITMAPFILEHEADER {
+typedef struct tagBITMAPFILEHEADER {//位图文件头
     WORD bfType;
 	DWORD bfSize;
 	WORD bfReserved1;
@@ -17,7 +17,7 @@ typedef struct tagBITMAPFILEHEADER {
     DWORD bfOffBits;
  } BITMAPFILEHEADER, *PBITMAPFILEHEADER;
 
-typedef struct tagBITMAPINFOHEADER{
+typedef struct tagBITMAPINFOHEADER{//位图信息头
 		DWORD biSize;
 		LONG biWidth;
 		LONG biHeight;
@@ -31,42 +31,42 @@ typedef struct tagBITMAPINFOHEADER{
 		DWORD biClrImportant;
  } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 
-typedef struct tagRGBQUAD {
+typedef struct tagRGBQUAD {//调色板
 		BYTE rgbBlue;
 		BYTE rgbGreen;
 		BYTE rgbRed;
 		BYTE rgbReserved;
  } RGBQUAD;
 
-typedef struct tagBITMAPINFO {
+typedef struct tagBITMAPINFO {//位图信息头+调色板
 		BITMAPINFOHEADER bmiHeader; 	RGBQUAD bmiColors[];
 } BITMAPINFO, *PBITMAPINFO;
 
-typedef struct tagIMAGEDATA{
+typedef struct tagIMAGEDATA{//RGB像素点
     BYTE blue;
     BYTE green;
     BYTE red;
 } IMAGEDATA;
 
-typedef struct IMAGEYIQ{
+typedef struct IMAGEYIQ{//YIQ像素点
     BYTE Y;
     BYTE I;
     BYTE Q;
 };
 
-typedef struct IMAGEXYZ{
+typedef struct IMAGEXYZ{//XYZ像素点
     BYTE X;
     BYTE Y;
     BYTE Z;
 };
 
-typedef struct IMAGEHSI{
+typedef struct IMAGEHSI{//HSI像素点
     BYTE H;
     BYTE S;
     BYTE I;
 };
 
-int img_header_read(FILE *fp, BITMAPFILEHEADER &img_file_header)
+int img_header_read(FILE *fp, BITMAPFILEHEADER &img_file_header)//读取位图文件头并输出
 {
     PBITMAPFILEHEADER phead = &img_file_header;
 
@@ -85,7 +85,7 @@ int img_header_read(FILE *fp, BITMAPFILEHEADER &img_file_header)
     return 1;
 }
 
-bool img_info_read(FILE *fp, BITMAPINFO &img_info)
+bool img_info_read(FILE *fp, BITMAPINFO &img_info)//读取位图信息头+调色板并输出位图信息头
 {
     fread(&img_info.bmiHeader, 1, sizeof(img_info.bmiHeader), fp);
     cout<<"biSize:"<<hex<<img_info.bmiHeader.biSize<<endl;
@@ -116,7 +116,7 @@ bool img_info_read(FILE *fp, BITMAPINFO &img_info)
     return ColorFg;
 }
 
-float intPRE(float a)
+float intPRE(float a)//将浮点数加0.5以供转整形时四舍五入
 {
     if (a>0)
     {
@@ -129,7 +129,7 @@ float intPRE(float a)
     return a;
 }
 
-IMAGEYIQ *RGBtoYIQ(IMAGEDATA *P, int plength)
+IMAGEYIQ *RGBtoYIQ(IMAGEDATA *P, int plength)//RGB像素点转换为YIQ像素点
 {
     float changeMatrix[3][3]={{0.299, 0.587, 0.114},
                               {0.596, -0.274, -0.322},
@@ -159,7 +159,7 @@ IMAGEYIQ *RGBtoYIQ(IMAGEDATA *P, int plength)
     return yiq;
 }
 
-float min_RGB(float R, float G, float B)
+float min_RGB(float R, float G, float B)//求三个浮点数的最小值
 {
     float re = R;
     if (G<R)
@@ -173,7 +173,7 @@ float min_RGB(float R, float G, float B)
     return re;
 }
 
-IMAGEHSI *RGBtoHSI(IMAGEDATA *P, int plength)
+IMAGEHSI *RGBtoHSI(IMAGEDATA *P, int plength)//RGB像素点转换为HSI像素点
 {
     IMAGEHSI *hsi = new IMAGEHSI[plength];
     float H, S, I, R, G, B;
@@ -182,9 +182,9 @@ IMAGEHSI *RGBtoHSI(IMAGEDATA *P, int plength)
         R = (float)P[i].red;
         G = (float)P[i].green;
         B = (float)P[i].blue;
-        H = 1.0/3.0*(R+G+B);
+        I = 1.0/3.0*(R+G+B);
         S = 1.0-3.0/(R+G+B)*min_RGB(R, G, B);
-        I = (float)acos(((R-G)+(R-B))/2.0/((R-G)*(R-G)+(R-B)*(float)sqrt(G-B)));
+        H = (float)acos(((R-G)+(R-B))/2.0/((R-G)*(R-G)+(R-B)*(float)sqrt(G-B)));
 
         hsi[i].H = (char) intPRE(H);
         hsi[i].S = (char) intPRE(S);
@@ -194,7 +194,7 @@ IMAGEHSI *RGBtoHSI(IMAGEDATA *P, int plength)
     return hsi;
 }
 
-IMAGEXYZ *RGBtoXYZ(IMAGEDATA *P, int plength)
+IMAGEXYZ *RGBtoXYZ(IMAGEDATA *P, int plength)//RGB像素点转换为XYZ像素点
 {
     float changeMatrix[3][3]={{0.490, 0.310, 0.200},
                               {0.177, 0.813, 0.011},
@@ -224,7 +224,7 @@ IMAGEXYZ *RGBtoXYZ(IMAGEDATA *P, int plength)
     return xyz;
 }
 
-int img_read(char *file_name, BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA *Pixels)
+int img_read(char *file_name, BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA *Pixels)//读位图文件函数，将位图文件头存入img_file_header，位图信息头+调色板存入img_info，像素信息存入Pixels
 {
     FILE *fp = fopen(file_name, "rb");
     img_header_read(fp, img_file_header);
@@ -247,18 +247,18 @@ int img_read(char *file_name, BITMAPFILEHEADER &img_file_header, BITMAPINFO &img
     fclose(fp);
 }
 
-int img_write(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA *Pixels)
+int img_write(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA *Pixels)//写RGB图像，这里使用单红色图像
 {
     BITMAPFILEHEADER *img_header=&img_file_header;
     BITMAPINFO *binfo=&img_info;
-    ofstream Rimg("Rimg.bmp", ios::binary);
+    ofstream Rimg("Rimg.bmp", ios::binary);//写入文件Rimg.bmp
 
-    Rimg.write((char*)&img_header->bfType, sizeof(WORD));
+    Rimg.write((char*)&img_header->bfType, sizeof(WORD));//写文件头信息
     Rimg.write((char*)&img_header->bfSize, sizeof(DWORD));
     Rimg.write((char*)&img_header->bfReserved1, sizeof(WORD));
     Rimg.write((char*)&img_header->bfReserved2, sizeof(WORD));
     Rimg.write((char*)&img_header->bfOffBits, sizeof(DWORD));
-    Rimg.write((char*)binfo, sizeof(img_info));
+    Rimg.write((char*)binfo, sizeof(img_info));//写位图信息头+调色板
 
     for (int i=0;i<binfo->bmiHeader.biHeight;i++)
     {
@@ -266,34 +266,34 @@ int img_write(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA
         {
             char tmp = 0;
 
-            Rimg.write(&tmp, sizeof(BYTE));
+            Rimg.write(&tmp, sizeof(BYTE));//每一个像素点地写，green和blue为0
             Rimg.write(&tmp, sizeof(BYTE));
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].red, sizeof(BYTE));
         }
-    }
+    }//可以调换位置，将red改为blue或green，输出单蓝色或单绿色图像
 
     //Rimg.write((char*)P, sizeof(P));
     Rimg.close();
     return 0;
 }
 
-int img_write_yiq(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEYIQ *Pixels)
+int img_write_yiq(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEYIQ *Pixels)//写YIQ图像
 {
     BITMAPFILEHEADER *img_header=&img_file_header;
     BITMAPINFO *binfo=&img_info;
     ofstream Rimg("YIQimg.bmp", ios::binary);
-    Rimg.write((char*)&img_header->bfType, sizeof(WORD));
+    Rimg.write((char*)&img_header->bfType, sizeof(WORD));//写文件头信息
     Rimg.write((char*)&img_header->bfSize, sizeof(DWORD));
     Rimg.write((char*)&img_header->bfReserved1, sizeof(WORD));
     Rimg.write((char*)&img_header->bfReserved2, sizeof(WORD));
     Rimg.write((char*)&img_header->bfOffBits, sizeof(DWORD));
-    Rimg.write((char*)binfo, sizeof(img_info));
+    Rimg.write((char*)binfo, sizeof(img_info));//写位图信息头+调色板
     for (int i=0;i<binfo->bmiHeader.biHeight;i++)
     {
         for (int j=0;j<binfo->bmiHeader.biWidth;j++)
         {
             char tmp = 0;
-            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Y, sizeof(BYTE));
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Y, sizeof(BYTE));//写像素点
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].I, sizeof(BYTE));
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Q, sizeof(BYTE));
         }
@@ -309,18 +309,18 @@ int img_write_hsi(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGE
     BITMAPFILEHEADER *img_header=&img_file_header;
     BITMAPINFO *binfo=&img_info;
     ofstream Rimg("HSIimg.bmp", ios::binary);
-    Rimg.write((char*)&img_header->bfType, sizeof(WORD));
+    Rimg.write((char*)&img_header->bfType, sizeof(WORD));//写文件头信息
     Rimg.write((char*)&img_header->bfSize, sizeof(DWORD));
     Rimg.write((char*)&img_header->bfReserved1, sizeof(WORD));
     Rimg.write((char*)&img_header->bfReserved2, sizeof(WORD));
     Rimg.write((char*)&img_header->bfOffBits, sizeof(DWORD));
-    Rimg.write((char*)binfo, sizeof(img_info));
+    Rimg.write((char*)binfo, sizeof(img_info));//写位图信息头+调色板
     for (int i=0;i<binfo->bmiHeader.biHeight;i++)
     {
         for (int j=0;j<binfo->bmiHeader.biWidth;j++)
         {
             char tmp = 0;
-            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].H, sizeof(BYTE));
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].H, sizeof(BYTE));//写像素点
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].S, sizeof(BYTE));
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].I, sizeof(BYTE));
         }
@@ -336,18 +336,18 @@ int img_write_xyz(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGE
     BITMAPFILEHEADER *img_header=&img_file_header;
     BITMAPINFO *binfo=&img_info;
     ofstream Rimg("XYZimg.bmp", ios::binary);
-    Rimg.write((char*)&img_header->bfType, sizeof(WORD));
+    Rimg.write((char*)&img_header->bfType, sizeof(WORD));//写文件头信息
     Rimg.write((char*)&img_header->bfSize, sizeof(DWORD));
     Rimg.write((char*)&img_header->bfReserved1, sizeof(WORD));
     Rimg.write((char*)&img_header->bfReserved2, sizeof(WORD));
     Rimg.write((char*)&img_header->bfOffBits, sizeof(DWORD));
-    Rimg.write((char*)binfo, sizeof(img_info));
+    Rimg.write((char*)binfo, sizeof(img_info));//写位图信息头+调色板
     for (int i=0;i<binfo->bmiHeader.biHeight;i++)
     {
         for (int j=0;j<binfo->bmiHeader.biWidth;j++)
         {
             char tmp = 0;
-            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].X, sizeof(BYTE));
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].X, sizeof(BYTE));//写像素点
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Y, sizeof(BYTE));
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Z, sizeof(BYTE));
         }
@@ -363,21 +363,21 @@ int main()
     BITMAPFILEHEADER img_header;
     BITMAPINFO binfo;
     IMAGEDATA P[100000];
-    img_read("3.bmp", img_header, binfo, P);
+    img_read("3.bmp", img_header, binfo, P);//读位图文件
 
     //img_write(img_head, binfo, P);
 
-    IMAGEYIQ *yiq;
-    yiq = RGBtoYIQ(P, binfo.bmiHeader.biWidth*binfo.bmiHeader.biHeight);
-    img_write_yiq(img_header, binfo, yiq);
+    //IMAGEYIQ *yiq;
+    //yiq = RGBtoYIQ(P, binfo.bmiHeader.biWidth*binfo.bmiHeader.biHeight);
+    //img_write_yiq(img_header, binfo, yiq);
 
-    //IMAGEHSI *hsi;
-    //hsi = RGBtoHSI(P, binfo.bmiHeader.biWidth*binfo.bmiHeader.biHeight);
-    //img_write_hsi(img_header, binfo, hsi);
+    IMAGEHSI *hsi;
+    hsi = RGBtoHSI(P, binfo.bmiHeader.biWidth*binfo.bmiHeader.biHeight);
+    img_write_hsi(img_header, binfo, hsi);
 
-    IMAGEXYZ *xyz;
-    xyz = RGBtoXYZ(P, binfo.bmiHeader.biWidth*binfo.bmiHeader.biHeight);
-    img_write_xyz(img_header, binfo, xyz);
+    //IMAGEXYZ *xyz;
+    //xyz = RGBtoXYZ(P, binfo.bmiHeader.biWidth*binfo.bmiHeader.biHeight);
+    //img_write_xyz(img_header, binfo, xyz);
 
     return 0;
 }
