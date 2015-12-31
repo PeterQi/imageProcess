@@ -54,6 +54,12 @@ typedef struct IMAGEYIQ{//YIQ像素点
     BYTE Q;
 };
 
+typedef struct IMAGEYCrCb{//YIQ像素点
+    BYTE Y;
+    BYTE Cr;
+    BYTE Cb;
+};
+
 typedef struct IMAGEXYZ{//XYZ像素点
     BYTE X;
     BYTE Y;
@@ -157,6 +163,36 @@ IMAGEYIQ *RGBtoYIQ(IMAGEDATA *P, int plength)//RGB像素点转换为YIQ像素点
     }
 
     return yiq;
+}
+
+IMAGEYCrCb *RGBtoYCrCb(IMAGEDATA *P, int plength)//RGB像素点转换为YIQ像素点
+{
+    float changeMatrix[3][3]={{0.299, 0.587, 0.114},
+                              {0.500, -0.4187, -0.0813},
+                              {-0.1687, -0.3313, 0.500}};
+    IMAGEYCrCb *ycrcb = new IMAGEYCrCb[plength];
+    float Y, Cr, Cb;
+    for (int i = 0; i<plength; i++)
+    {
+        Y = 0;
+        Cr = 0;
+        Cb = 0;
+        Y += changeMatrix[0][0]*P[i].red;
+        Y += changeMatrix[0][1]*P[i].green;
+        Y += changeMatrix[0][2]*P[i].blue;
+        Cr += changeMatrix[1][0]*P[i].red;
+        Cr += changeMatrix[1][1]*P[i].green;
+        Cr += changeMatrix[1][2]*P[i].blue;
+        Cb += changeMatrix[2][0]*P[i].red;
+        Cb += changeMatrix[2][1]*P[i].green;
+        Cb += changeMatrix[2][2]*P[i].blue;
+
+        ycrcb[i].Y = (char) intPRE(Y);
+        ycrcb[i].Cr = (char) intPRE(Cr);
+        ycrcb[i].Cb = (char) intPRE(Cb);
+    }
+
+    return ycrcb;
 }
 
 float min_RGB(float R, float G, float B)//求三个浮点数的最小值
@@ -296,6 +332,33 @@ int img_write_yiq(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGE
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Y, sizeof(BYTE));//写像素点
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].I, sizeof(BYTE));
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Q, sizeof(BYTE));
+        }
+    }
+
+    //Rimg.write((char*)P, sizeof(P));
+    Rimg.close();
+    return 0;
+}
+
+int img_write_ycrcb(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEYCrCb *Pixels)//写YCrCb图像
+{
+    BITMAPFILEHEADER *img_header=&img_file_header;
+    BITMAPINFO *binfo=&img_info;
+    ofstream Rimg("YCrCbimg.bmp", ios::binary);
+    Rimg.write((char*)&img_header->bfType, sizeof(WORD));//写文件头信息
+    Rimg.write((char*)&img_header->bfSize, sizeof(DWORD));
+    Rimg.write((char*)&img_header->bfReserved1, sizeof(WORD));
+    Rimg.write((char*)&img_header->bfReserved2, sizeof(WORD));
+    Rimg.write((char*)&img_header->bfOffBits, sizeof(DWORD));
+    Rimg.write((char*)binfo, sizeof(img_info));//写位图信息头+调色板
+    for (int i=0;i<binfo->bmiHeader.biHeight;i++)
+    {
+        for (int j=0;j<binfo->bmiHeader.biWidth;j++)
+        {
+            char tmp = 0;
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Y, sizeof(BYTE));//写像素点
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Cr, sizeof(BYTE));
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].Cb, sizeof(BYTE));
         }
     }
 
