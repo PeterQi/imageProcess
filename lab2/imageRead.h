@@ -283,11 +283,11 @@ int img_read(char *file_name, BITMAPFILEHEADER &img_file_header, BITMAPINFO &img
     fclose(fp);
 }
 
-int img_write(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA *Pixels)//写RGB图像，这里使用单红色图像
+int img_write(char filename[256], BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA *Pixels)//写RGB图像
 {
     BITMAPFILEHEADER *img_header=&img_file_header;
     BITMAPINFO *binfo=&img_info;
-    ofstream Rimg("Rimg.bmp", ios::binary);//写入文件Rimg.bmp
+    ofstream Rimg(filename, ios::binary);//写入文件Rimg.bmp
 
     Rimg.write((char*)&img_header->bfType, sizeof(WORD));//写文件头信息
     Rimg.write((char*)&img_header->bfSize, sizeof(DWORD));
@@ -302,8 +302,8 @@ int img_write(BITMAPFILEHEADER &img_file_header, BITMAPINFO &img_info, IMAGEDATA
         {
             char tmp = 0;
 
-            Rimg.write(&tmp, sizeof(BYTE));//每一个像素点地写，green和blue为0
-            Rimg.write(&tmp, sizeof(BYTE));
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].blue, sizeof(BYTE));
+            Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].green, sizeof(BYTE));
             Rimg.write((char*)&Pixels[i*binfo->bmiHeader.biWidth+j].red, sizeof(BYTE));
         }
     }//可以调换位置，将red改为blue或green，输出单蓝色或单绿色图像
