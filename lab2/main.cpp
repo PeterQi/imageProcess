@@ -584,11 +584,12 @@ int main()
             s_Y[i][j] = ycrcb[i*binfo.bmiHeader.biWidth+j].Y;
         }
     }
-/*
+
     float **DCT_block2 = DCT2(s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N);
 
     for (int k = 1;k<=64;k++)
     {
+        BYTE **gray2 = inverse_DCT2(DCT_block2, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N, k);
         for (int i=0;i<binfo.bmiHeader.biHeight;i++)
         {
             for (int j = 0;j<binfo.bmiHeader.biWidth;j++)
@@ -603,7 +604,7 @@ int main()
         cout<<k<<endl;
 
         img_write(s, img_header, binfo, gray_data);
-    }*/
+    }
     clock_t start, finish;
     double totaltime;
     start = clock();
