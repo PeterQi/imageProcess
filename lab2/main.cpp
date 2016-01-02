@@ -1,5 +1,6 @@
 #include <iostream>
 #include "imageRead.h"
+#include <time.h>
 #include <complex>
 #include <string>
 
@@ -177,6 +178,41 @@ float **DCT(BYTE **src, int width, int height, int N)
                         }
                     }
                     DCT_result[k*N+u][m*N+v]=DCT_result[k*N+u][m*N+v]/2/N/N/N;
+                }
+            }
+        }
+    }
+    return DCT_result;
+}
+
+float **DCT2(BYTE **src, int width, int height, int N)
+{
+    float **DCT_result = new float*[height];
+    for (int i = 0;i<height;i++)
+    {
+        DCT_result[i] = new float[width];
+    }
+    float e[N];
+    e[0] = sqrt(2)/2.0;
+    for (int i = 1;i<N;i++)
+        e[i]=1;
+    for (int k=0;k < height/N;k++)
+    {
+        for (int m = 0;m < width/N;m++)
+        {
+            for (int u=0;u < N;u++)
+            {
+                for (int v = 0; v < N;v++)
+                {
+                    DCT_result[k*N+u][m*N+v] = 0;
+                    for (int x = 0; x < N; x++)
+                    {
+                        for (int y = 0; y < N; y++)
+                        {
+                            DCT_result[k*N+u][m*N+v]+=(float)src[k*N+x][m*N+y]*cos((2.0*x+1)*u*M_PI/2/N)*cos((2.0*y+1)*v*M_PI/2/N);
+                        }
+                    }
+                    DCT_result[k*N+u][m*N+v]=DCT_result[k*N+u][m*N+v]*2*e[u]*e[v]/N;
                 }
             }
         }
@@ -373,6 +409,156 @@ BYTE **inverse_DCT_total(float **src, int width, int height, int N)
 
 }
 
+BYTE **inverse_DCT2(float **src, int width, int height, int N, int level)
+{
+    float changed_src[height][width];
+    BYTE **inverse_block = new BYTE * [height];
+    int base, aim;
+    float e[N];
+    e[0] = sqrt(2)/2.0;
+    for (int i = 1;i<N;i++)
+        e[i]=1;
+    for (int i = 0; i<height; i++)
+    {
+        inverse_block[i] = new BYTE[width];
+    }
+    for (int k=0;k < height/N;k++)
+    {
+        for (int m = 0;m < width/N;m++)
+        {
+            for (int i = 0;i<N;i++)
+            {
+                for (int j = 0;j<N;j++)
+                {
+                    if(i+j<N)
+                    {
+                        base = (1+i+j)*(i+j)/2;
+                        aim = (i+j)%2;
+                        if(aim)
+                        {
+                            if(base+i<level)
+                            {
+                                changed_src[i][j] = src[k*N+i][m*N+j];
+                            }
+                            else
+                            {
+                                changed_src[i][j] = 0;
+                            }
+                        }
+                        else
+                        {
+                            if(base+j<level)
+                            {
+                                changed_src[i][j] = src[k*N+i][m*N+j];
+                            }
+                            else
+                            {
+                                changed_src[i][j] = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        base = (1+N)*N/2;
+                        base+=(N-1+N-1-(i+j-N-1))*(i+j-N)/2;
+                        aim = (i+j)%2;
+                        if(aim)
+                        {
+                            if(base+N-1-j<level)
+                            {
+                                changed_src[i][j] = src[k*N+i][m*N+j];
+                            }
+                            else
+                            {
+                                changed_src[i][j] = 0;
+                            }
+                        }
+                        else
+                        {
+                            if(base+N-1-i<level)
+                            {
+                                changed_src[i][j] = src[k*N+i][m*N+j];
+                            }
+                            else
+                            {
+                                changed_src[i][j] = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            for (int x = 0;x < N; x++)
+            {
+                for (int y = 0;y < N; y++)
+                {
+                    inverse_block[k*N+x][m*N+y] = 0;
+                    float tmp = 0;
+
+                    for (int u = 0; u<N; u++)
+                    {
+                        for (int v=0;v<N;v++)
+                        {
+                            tmp+=e[u]*e[v]*changed_src[u][v]*cos((2*x+1)*u*M_PI/2/N)*cos((2*y+1)*v*M_PI/2/N);
+                        }
+                    }
+                    tmp=tmp*2/N;
+                    inverse_block[k*N+x][m*N+y] = (char)intPRE(tmp);
+                }
+            }
+        }
+    }
+    return inverse_block;
+
+}
+
+BYTE **inverse_DCT_total2(float **src, int width, int height, int N)
+{
+    float changed_src[N][N];
+    BYTE **inverse_block = new BYTE * [height];
+    int base, aim;
+    float e[N];
+    e[0] = sqrt(2)/2.0;
+    for (int i = 1;i<N;i++)
+        e[i]=1;
+    for (int i = 0; i<height; i++)
+    {
+        inverse_block[i] = new BYTE[width];
+    }
+    for (int k=0;k < height/N;k++)
+    {
+        for (int m = 0;m < width/N;m++)
+        {
+            for (int i = 0;i<N;i++)
+            {
+                for (int j = 0;j<N;j++)
+                {
+                    changed_src[i][j] = src[k*N+i][m*N+j];
+                }
+            }
+            for (int x = 0;x < N; x++)
+            {
+                for (int y = 0;y < N; y++)
+                {
+                    inverse_block[k*N+x][m*N+y] = 0;
+                    float tmp = 0;
+
+                    for (int u = 0; u<N; u++)
+                    {
+                        for (int v=0;v<N;v++)
+                        {
+                            tmp+=e[u]*e[v]*changed_src[u][v]*cos((2*x+1)*u*M_PI/2/N)*cos((2*y+1)*v*M_PI/2/N);
+                        }
+                    }
+                    tmp=tmp*2/N;
+                    inverse_block[k*N+x][m*N+y] = (char)intPRE(tmp);
+                }
+            }
+        }
+    }
+    return inverse_block;
+
+}
+
 int main()
 {
     BITMAPFILEHEADER img_header;
@@ -385,13 +571,6 @@ int main()
     IMAGEYCrCb *ycrcb;
     IMAGEDATA gray_data[imglength];
     ycrcb = RGBtoYCrCb(P, imglength);
-//    for (int i = 0;i < imglength; i++)
-//    {
-//        gray_data[i].blue = ycrcb[i].Y;
-//        gray_data[i].green = ycrcb[i].Y;
-//        gray_data[i].red = ycrcb[i].Y;
-//    }
-//    img_write("img.bmp", img_header, binfo, gray_data);
 
     complex <float>**dft_ori;
     BYTE **s_Y;
@@ -404,45 +583,33 @@ int main()
         {
             s_Y[i][j] = ycrcb[i*binfo.bmiHeader.biWidth+j].Y;
         }
-
     }
+/*
+    float **DCT_block2 = DCT2(s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N);
 
-    float **DCT_block;
-
-    DCT_block = DCT(s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N);
-        //BYTE **gray2 = inverse_DCT(DCT_block, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N, k);
-        BYTE **gray2 = inverse_DCT_total(DCT_block, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N);
-//    for (int i = 0;i < binfo.bmiHeader.biHeight;i++)
-//    {
-//        for (int j = 0; j< binfo.bmiHeader.biWidth;j++)
-//        {
-//            cout<<(int)gray2[i][j]<<',';
-//            system("pause");
-//        }
-//        cout<<endl;
-//    }
+    for (int k = 1;k<=64;k++)
+    {
         for (int i=0;i<binfo.bmiHeader.biHeight;i++)
         {
             for (int j = 0;j<binfo.bmiHeader.biWidth;j++)
             {
-                //cout<<(int)s_Y[i][j]<<' '<<(int)gray2[i][j]<<endl;
-                //system("pause");
                 gray_data[i*binfo.bmiHeader.biWidth+j].blue = gray2[i][j];
                 gray_data[i*binfo.bmiHeader.biWidth+j].green = gray2[i][j];
                 gray_data[i*binfo.bmiHeader.biWidth+j].red = gray2[i][j];
             }
         }
-        int k=64;
-        char a[3];
-        sprintf(a, "%d", k);
         char s[100];
-        sprintf(s,"%s%d%s","img_dct_total",k,".bmp");
+        sprintf(s,"%s%d%s","img_dct",k,".bmp");
         cout<<k<<endl;
 
         img_write(s, img_header, binfo, gray_data);
-
-    /*dft_ori = DFT_two(s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N);
-
+    }*/
+    clock_t start, finish;
+    double totaltime;
+    start = clock();
+    dft_ori = DFT_two(s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight, N);
+    finish = clock();
+    totaltime = (double)(finish - start)/CLOCKS_PER_SEC;
     BYTE *gray = to_gray_two(dft_ori, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight);
     for (int i = 0;i < imglength; i++)
     {
@@ -450,7 +617,7 @@ int main()
         gray_data[i].green = gray[i];
         gray_data[i].red = gray[i];
     }
-    img_write("img2.bmp", img_header, binfo, gray_data);*/
-
+    img_write("dft.bmp", img_header, binfo, gray_data);
+    cout<<"DFT time:"<<totaltime<<"s"<<endl;
     return 0;
 }

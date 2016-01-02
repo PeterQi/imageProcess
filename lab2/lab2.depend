@@ -1,9 +1,10 @@
 # depslib dependency file v1.0
-1451553499 source:d:\codes\imageprocess\imageprocess\lab2\main.cpp
+1451702665 source:d:\codes\imageprocess\imageprocess\lab2\main.cpp
 	<iostream>
 	"imageRead.h"
-	<complex.h>
-	"highgui.h"
+	<time.h>
+	<complex>
+	<string>
 
 1451556240 d:\codes\imageprocess\imageprocess\lab2\imageread.h
 	<iostream>
