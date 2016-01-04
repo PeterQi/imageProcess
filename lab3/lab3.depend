@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1451888289 source:d:\users\peter\workspace\imageprocess\lab3\main.cpp
+	<iostream>
+	"imageRead.h"
+
+1451564620 d:\users\peter\workspace\imageprocess\lab3\imageread.h
+	<iostream>
+	<stdlib.h>
+	<fstream>
+	<math.h>
+
