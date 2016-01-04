@@ -34,7 +34,7 @@ BYTE **template_change(int **tem, BYTE **src, int width, int height)//3*3
     tem11+=tem[2][1];
     tem11+=tem[2][2];
     int tem_sum = 0;
-
+//将图像像素点分为9块处理，左上角点、上边缘点、右上角点、左边缘点、中间点、右边缘点、左下角点、下边缘点、右下角点
     for (int i = 1;i<3;i++)
         for (int j =1;j<3;j++)
             temp_result[0][0]+=tem[i][j]*(float)src[i-1][j-1];
@@ -162,9 +162,8 @@ int main()
     cout<<"Gray count"<<endl;
     for (int i =0;i<256;i++)
     {
-        cout<<dec<<i<<' '<<histo[i]<<endl;
+        cout<<dec<<' '<<histo[i]<<endl;
     }
-    return 0;
 
     BYTE **gray2 = template_change(Laplacian, s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight);
     for (int i=0;i<binfo.bmiHeader.biHeight;i++)
