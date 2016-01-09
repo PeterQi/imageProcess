@@ -162,10 +162,10 @@ int main()
     cout<<"Gray count"<<endl;
     for (int i =0;i<256;i++)
     {
-        cout<<dec<<' '<<histo[i]<<endl;
+        cout<<dec<<i<<' '<<histo[i]<<endl;
     }
 
-    BYTE **gray2 = template_change(Laplacian, s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight);
+    BYTE **gray2 = template_change(Prewitt_c, s_Y, binfo.bmiHeader.biWidth, binfo.bmiHeader.biHeight);
     for (int i=0;i<binfo.bmiHeader.biHeight;i++)
     {
         for (int j = 0;j<binfo.bmiHeader.biWidth;j++)
@@ -176,7 +176,7 @@ int main()
         }
     }
 
-    img_write("Laplacian.bmp", img_header, binfo, gray_data);
+    img_write("Prewitt_c.bmp", img_header, binfo, gray_data);
 
 
     return 0;

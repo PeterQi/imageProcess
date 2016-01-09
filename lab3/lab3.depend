@@ -9,3 +9,13 @@
 	<fstream>
 	<math.h>
 
+1452041434 source:d:\codes\imageprocess\imageprocess\lab3\main.cpp
+	<iostream>
+	"imageRead.h"
+
+1452037089 d:\codes\imageprocess\imageprocess\lab3\imageread.h
+	<iostream>
+	<stdlib.h>
+	<fstream>
+	<math.h>
+
